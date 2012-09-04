@@ -3,7 +3,7 @@
 var assert = require('assert');
 var support = require("./lib/support");
 
-suite('Campfire API', function(){
+suite('Campfire API:', function(){
     var campfire;
 
     setup(function(){
@@ -11,11 +11,13 @@ suite('Campfire API', function(){
     });
 
 
-    suite('Account Info', function(){
-        test('Get Account info, proper URI', function(done){
+    suite('Account Info:', function(){
+        test('Get Account info', function(done){
             campfire.account(
-                function(result) {
+                function(responseBody, response, error) {
                     assert.equal(support.last.uri, "/account.json");
+                    assert.equal(200, response.statusCode);
+                    console.log(responseBody);
                     done();
                 }
             );

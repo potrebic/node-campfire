@@ -12,16 +12,16 @@
   },
   "main": "lib/campfire.js",
   "engines": {
-    "node": ">=0.6"
+    "node": ">= 0.6.0"
   },
   "scripts": {
-    "test": "mocha --ui tdd"
+    "test": "mocha --ui tdd -R tap"
   },
   "dependencies": {
-    "restify": ">=1.4.4",
-    "underscore": ">=1.3.3"
+    "restify": "1.4.x",
+    "underscore": "1.3.x"
   },
   "devDependencies": {
-    "mocha": "1.4.2"
+    "mocha": "1.4.x"
   }
 }

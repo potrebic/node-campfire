@@ -1,8 +1,15 @@
 # **node-campfire** #
 
-A node.js package/api for [Campfire](http://www.campfirenow.com) (by [37signals](http://37signals.com/)).
+A node.js wrapper for the [Campfire](http://www.campfirenow.com) (by [37signals](http://37signals.com/)) API.
 
 https://github.com/potrebic/node-campfire
+
+This code isn't in a released state yet.
+
+>This is my first node.js project. This package will be used in another project that I'm working on - [Smoke Signal](https://github.com/potrebic/smokesignal). I wrote the first version of smoke Signal in C#/.Net, and rewriting it in node as a learning experience
+
+
+
 
 # **License** #
 Copyright (c) 2012 Peter Potrebic. All rights reserved.
