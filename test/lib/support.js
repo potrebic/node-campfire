@@ -3,37 +3,40 @@
 var assert = require('assert');
 var campfireAPI = require('../../lib/campfire');
 var _und = require("underscore");
+var restify = require('restify');
 
 var config = {
-//    campfireName: 'fake',
-//    apiToken: 'atoken123'
-    campfireName: 'nodoto',
-    apiToken: 'a9619c12e3e2c5e83d2deeea8f1bf3296ca578dc',
+    campfireName: 'fake',
+    apiToken: 'atoken123'
 };
+
+// define another 'config JSON object - named realConfig, if you
+// want unit tests to hit a real campfire room.
+
 exports.config = config;
 
 var testInfo = {
      roomIdInt: 340141
     ,roomIdStr: '340141'
-    ,callRealAPI: true
 };
 exports.testInfo = testInfo;
 
 
 var createCampfireAPI = function() {
 
-    if (!testInfo.callRealAPI) {
-        console.log('just calling mock APIs');
-        config.api = createMock();  // dependency injecting a mock JsonClient to createCampfireAPI() call below
+    var realAPI;
+
+    // if we want to call real API...
+    if (realConfig) {
+        realAPI = restify.createJsonClient({
+            url:'https://' + realConfig.campfireName + '.campfirenow.com'
+        });
+        realAPI.basicAuth(realConfig.apiToken, 'x');
     }
+
+    config.api = createMock(realAPI);  // dependency injecting a mock JsonClient to createCampfireAPI() call below
 
     var campfire = campfireAPI.createCampfireAPI(config);
-
-    if (testInfo.callRealAPI) {
-        console.log('calling real campfire APIs');
-        testInfo.realAPI = campfire.api;
-        campfire.api = createMock();
-    }
 
     return campfire;
 };
@@ -53,9 +56,10 @@ exports.last = last;
 /**
  * The mock object that simulates the 'restify-JsonClient' interface to campfire's RESTful-ish API
  *
+ * @param {JSON} realAPI, optional. Reference to campfireAPI object
  * @return {Object} the mock 'restify' JsonClient
  */
-var createMock = function () {
+var createMock = function (realAPI) {
     var that = {};
 
     // privates
@@ -73,8 +77,8 @@ var createMock = function () {
         last.uri = uri;
         last.body = undefined;
 
-        if (testInfo.realAPI) {
-            testInfo.realAPI.get(uri, handler);
+        if (realAPI) {
+            realAPI.get(uri, handler);
         } else {
             // handler's signature: function(error, request, response, responseBody)
             handler(null, {}, makeMockResponse(200), null);
@@ -86,8 +90,8 @@ var createMock = function () {
         last.uri = uri;
         last.body = object;
 
-        if (testInfo.realAPI) {
-            testInfo.realAPI.put(uri, object, handler);
+        if (realAPI) {
+            realAPI.put(uri, object, handler);
         } else {
             // handler's signature: function(error, request, response, responseBody)
             handler(null, {}, makeMockResponse(200), null);
@@ -99,8 +103,8 @@ var createMock = function () {
         last.uri = uri;
         last.body = object;
 
-        if (testInfo.realAPI) {
-            testInfo.realAPI.post(uri, object, handler);
+        if (realAPI) {
+            realAPI.post(uri, object, handler);
         } else {
             // handler's signature: function(error, request, response, responseBody)
             handler(null, {}, makeMockResponse(201), null);
@@ -111,8 +115,8 @@ var createMock = function () {
     that.del = function (uri, handler) {
         last.uri = uri;
         last.body = undefined;
-        if (testInfo.realAPI) {
-            testInfo.realAPI.del(uri, handler);
+        if (realAPI) {
+            realAPI.del(uri, handler);
         } else {
             // handler's signature: function(error, request, response, responseBody)
             handler(null, {}, makeMockResponse(200), null);

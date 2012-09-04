@@ -44,12 +44,12 @@ suite('Campfire API: ', function(){
         });
 
         test('Basic twitterURL post', function(done){
-            campfire.room.tweetMessage(support.testInfo.roomIdInt, "Hi there folks!",
+            campfire.room.tweetMessage(support.testInfo.roomIdInt, "https://twitter.com/Kred/status/239142587255115776",
                 function(responseBody, response, error) {
                     assert.equal(support.last.uri, support.formatString("/room/{0}/speak.json", support.testInfo.roomIdInt), "URI mismatch");
                     assert.equal(201, response.statusCode);
                     var expected = {message: {
-                        body: "Hi there folks!"
+                        body: "https://twitter.com/Kred/status/239142587255115776"
                         ,type: "TweetMessage"
                     }};
                     assert._isEqual(expected, support.last.body, "Didn't get expected body");
