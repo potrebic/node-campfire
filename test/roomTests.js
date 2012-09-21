@@ -11,7 +11,6 @@ suite('Room Tests:', function(){
     });
 
     suite('Room Info:', function(){
-        debugger;
         test('Get info on all rooms', function(done){
             campfire.rooms(
                 function(responseBody, response, error) {
@@ -38,6 +37,16 @@ suite('Room Tests:', function(){
                 function(responseBody, response, error) {
                     assert.equal(200, response.statusCode);
                     assert.equal(support.lastRequest.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdStr), "URI mismatch");
+                    done();
+                }
+            );
+        });
+
+        test('Non existent room', function(done){
+            support.api.setNextReturn(302);         // yep, that's what campfire returns if you pass in a non-existent roomId
+            campfire.room( 101,
+                function(responseBody, response, error) {
+                    assert.equal(302, response.statusCode);
                     done();
                 }
             );

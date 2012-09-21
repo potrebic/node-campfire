@@ -29,6 +29,7 @@ var testInfo = {
      roomIdInt: 340141
     ,roomIdStr: '340141'
     ,messageId: 663618457
+    ,userId: 718179
 };
 exports.testInfo = testInfo;
 

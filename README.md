@@ -8,10 +8,28 @@ This code isn't in a released state yet.
 
 >This is my first node.js project. This package will be used in another project that I'm working on - [Smoke Signal](https://github.com/potrebic/smokesignal). I wrote the first version of smoke Signal in C#/.Net, and rewriting it in node as a learning experience
 
+The notion was to create a minimal wrapper around the campfire APIs. This package doesn't define any sort of 'entity' objects that represent the campfire objects such as room, message, user. Rather this API simply deals with json objects that come through the campfire API.
+
+## **Unit tests** ##
+The unit tests can be run using the following command:
+> mocha -u tdd -R tap
+
+If want to run the tests against the real campfire API please see:
+> test/lib/support.js
+
+And in this case you might want to extend the default timeout for the tests like so:
+
+>mocha -u tdd -t 5000 -R tap
 
 
+## **tests** ##
+There isn't support for 2 sets of campfire APIs:
 
-# **License** #
+- uploads
+- streaming
+
+
+## **License** ##
 Copyright (c) 2012 Peter Potrebic. All rights reserved.
 
 The MIT License

@@ -9,4 +9,3 @@ var campfire = support.createCampfireAPI();
 //        var expectedUri = support.formatString("/room/{0}.json", support.testInfo.roomIdInt);
 //    }
 //);
-
