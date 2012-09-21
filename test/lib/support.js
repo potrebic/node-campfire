@@ -10,14 +10,25 @@ var config = {
     apiToken: 'atoken123'
 };
 
-// define another 'config JSON object - named realConfig, if you
-// want unit tests to hit a real campfire room.
+var realConfig = null;
+
+// The unit tests can be run against a real campfire API by defining a couple environment
+// variables (containing your private info). And uncommenting out the following. This mode
+// of running the tests gives a bit of validation that the actually campfire APIs haven't changed.
+//var realConfig = {
+//    campfireName: process.env.DevCampfireName,
+//    apiToken: process.env.DevCampfireToken
+//};
+
 
 exports.config = config;
 
+// if running tests against the real campfire API need to redefine the values below to valid (for your campfire)
+// values.
 var testInfo = {
      roomIdInt: 340141
     ,roomIdStr: '340141'
+    ,messageId: 663618457
 };
 exports.testInfo = testInfo;
 
@@ -47,11 +58,19 @@ exports.createCampfireAPI = createCampfireAPI;
  * @type {Object} A public reference the an object that holds 'state' of
  * info past to the callback methods. Allows for unit tests to confirm state.
  */
-var last = {
+var lastRequest = {
     uri: null,
     body: null
 };
-exports.last = last;
+exports.lastRequest = lastRequest;
+
+var nextReturn = {
+    // handler's signature: function(error, request, response, responseBody)
+    error: null,
+    responseBody: null,
+    statusCode: null
+};
+exports.nextReturn = nextReturn;
 
 /**
  * The mock object that simulates the 'restify-JsonClient' interface to campfire's RESTful-ish API
@@ -63,10 +82,27 @@ var createMock = function (realAPI) {
     var that = {};
 
     // privates
-    var makeMockResponse = function makeMockStatus(statusCode) {
+    var makeMockResponse = function makeMockStatus(defaultStatusCode, defaultBody) {
         return {
-            "statusCode": statusCode
+            "statusCode": nextReturn.statusCode || defaultStatusCode,
+            "body": nextReturn.responseBody || defaultBody
         };
+    }
+
+    var clearMockRespons = function clearMockResponse() {
+        nextReturn.error = null;
+        nextReturn.responseBody = null;
+        nextReturn.statusCode = null;
+    }
+
+    var saveLastRequest = function saveLastRequest(uri, body) {
+        // sometimes the uri is just a string, sometimes it is an options object.
+        if (typeof uri === 'string') {
+            lastRequest.uri = uri;
+        } else {
+            lastRequest.uri = uri.path;
+        }
+        lastRequest.body = body;
     }
 
 
@@ -74,53 +110,58 @@ var createMock = function (realAPI) {
 
     // api.get(uri, handler);
     that.get = function (uri, handler) {
-        last.uri = uri;
-        last.body = undefined;
+        saveLastRequest(uri, undefined);
 
         if (realAPI) {
             realAPI.get(uri, handler);
         } else {
             // handler's signature: function(error, request, response, responseBody)
-            handler(null, {}, makeMockResponse(200), null);
+            var fake = makeMockResponse(200, {});
+            handler(nextReturn.error, {}, fake, fake.body);
         }
+        clearMockRespons();
     }
 
     // api.put(uri, object, handler);
     that.put = function (uri, object, handler) {
-        last.uri = uri;
-        last.body = object;
+        saveLastRequest(uri, object);
 
         if (realAPI) {
             realAPI.put(uri, object, handler);
         } else {
             // handler's signature: function(error, request, response, responseBody)
-            handler(null, {}, makeMockResponse(200), null);
+            var fake = makeMockResponse(201);
+            handler(nextReturn.error, {}, fake, fake.body);
         }
+        clearMockRespons();
     }
 
     // api.post(uri, object, handler);
     that.post = function (uri, object, handler) {
-        last.uri = uri;
-        last.body = object;
+        saveLastRequest(uri, object);
 
         if (realAPI) {
             realAPI.post(uri, object, handler);
         } else {
             // handler's signature: function(error, request, response, responseBody)
-            handler(null, {}, makeMockResponse(201), null);
+            var fake = makeMockResponse(201);
+            handler(nextReturn.error, {}, fake, fake.body);
         }
+        clearMockRespons();
     }
 
     // api.del(uri, handler);
     that.del = function (uri, handler) {
-        last.uri = uri;
-        last.body = undefined;
+        saveLastRequest(uri, undefined);
+
         if (realAPI) {
             realAPI.del(uri, handler);
         } else {
             // handler's signature: function(error, request, response, responseBody)
-            handler(null, {}, makeMockResponse(200), null);
+            var fake = makeMockResponse(200);
+            handler(nextReturn.error, {}, fake, fake.body);
         }
+        clearMockRespons();
     }
 
     return that;
@@ -169,6 +210,12 @@ var helpers = function () {
             assert.equal(expected, match[0], 'wrong type: ' + expected + ', ' + match[0])
         }
     };
+
+    that.setNextReturn = function (statusCode, body, error) {
+        nextReturn.statusCode = statusCode;
+        nextReturn.responseBody = body;
+        nextReturn.error = error;
+    }
 
     return that;
 };

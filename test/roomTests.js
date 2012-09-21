@@ -3,7 +3,7 @@
 var assert = require('assert');
 var support = require("./lib/support");
 
-suite('Campfire API:', function(){
+suite('Room Tests:', function(){
     var campfire;
 
     setup(function(){
@@ -16,7 +16,7 @@ suite('Campfire API:', function(){
             campfire.rooms(
                 function(responseBody, response, error) {
                     assert.equal(200, response.statusCode);
-                    assert.equal(support.last.uri, support.formatString("/rooms.json"), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/rooms.json"), "URI mismatch");
                     done();
                 }
             );
@@ -25,7 +25,8 @@ suite('Campfire API:', function(){
         test('Get info on a room, int', function(done) {
             campfire.room(support.testInfo.roomIdInt,
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
+                    var expectedUri = support.formatString("/room/{0}.json", support.testInfo.roomIdInt);
+                    assert.equal(support.lastRequest.uri, expectedUri, "URI mismatch: " + support.lastRequest.uri + ", " + expectedUri);
                     assert.equal(200, response.statusCode);
                     done();
                 }
@@ -36,7 +37,7 @@ suite('Campfire API:', function(){
             campfire.room(support.testInfo.roomIdStr,
                 function(responseBody, response, error) {
                     assert.equal(200, response.statusCode);
-                    assert.equal(support.last.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdStr), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdStr), "URI mismatch");
                     done();
                 }
             );
@@ -57,9 +58,10 @@ suite('Campfire API:', function(){
 
     suite('Room Update:', function(){
         test('Update a room', function(done){
+            support.api.setNextReturn(200);
             campfire.room.update(support.testInfo.roomIdInt, '', '',
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
                     assert.equal(200, response.statusCode);
                     done();
                 }
@@ -101,48 +103,52 @@ suite('Campfire API:', function(){
         });
 
         test('Update a room, proper request body, only changing topic', function(done){
+            support.api.setNextReturn(200);
             campfire.room.update(support.testInfo.roomIdInt, "Some message", null,
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
                     assert.equal(200, response.statusCode);
                     var expected = {room: { topic: "Some message"}};
-                    assert._isEqual(expected, support.last.body, "Didn't get expected body");
+                    assert._isEqual(expected, support.lastRequest.body, "Didn't get expected body");
                     done();
                 }
             );
         });
 
         test('Update a room, proper request body, changing both', function(done){
+            support.api.setNextReturn(200);
             campfire.room.update(support.testInfo.roomIdInt, "Some message", "newRoomName",
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
                     assert.equal(200, response.statusCode);
                     var expected = {room: { topic: "Some message",  name: "newRoomName"}};
-                    assert._isEqual(expected, support.last.body, "Didn't get expected body");
+                    assert._isEqual(expected, support.lastRequest.body, "Didn't get expected body");
                     done();
                 }
             );
         });
 
         test('Update a room, proper request body, only changing name', function(done){
+            support.api.setNextReturn(200);
             campfire.room.update(support.testInfo.roomIdInt, null, "newRoomName",
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
                     assert.equal(200, response.statusCode);
                     var expected = {room: { name: "newRoomName"}};
-                    assert._isEqual(expected, support.last.body, "Didn't get expected body");
+                    assert._isEqual(expected, support.lastRequest.body, "Didn't get expected body");
                     done();
                 }
             );
         });
 
         test('Update a room, proper request body, clearing topic', function(done){
+            support.api.setNextReturn(200);
             campfire.room.update(support.testInfo.roomIdInt, "", null,
                 function(responseBody, response, error) {
                     assert.equal(200, response.statusCode);
-                    assert.equal(support.last.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}.json", support.testInfo.roomIdInt), "URI mismatch");
                     var expected = {room: { topic: null}};
-                    assert._isEqual(expected, support.last.body, "Didn't get expected body");
+                    assert._isEqual(expected, support.lastRequest.body, "Didn't get expected body");
                     done();
                 }
             );
@@ -152,16 +158,17 @@ suite('Campfire API:', function(){
 
     suite('Room Presence:', function(){
         test('Enter a room', function(done){
+            support.api.setNextReturn(200);
             campfire.room.presence(support.testInfo.roomIdInt, true,
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}/join.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}/join.json", support.testInfo.roomIdInt), "URI mismatch");
                     assert.equal(200, response.statusCode);
                     done();
                 }
             );
         });
 
-        test('Enter a room, bad typeof roomId', function(done){
+        test('leave a room, bad typeof roomId', function(done){
             support.api.expectsException( function() {
                 campfire.room.presence(23.4, false,
                     function(responseBody, response, error) {
@@ -173,9 +180,10 @@ suite('Campfire API:', function(){
         });
 
         test('Leave a room', function(done){
+            support.api.setNextReturn(200);
             campfire.room.presence(support.testInfo.roomIdInt, false,
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}/leave.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}/leave.json", support.testInfo.roomIdInt), "URI mismatch");
                     assert.equal(200, response.statusCode);
                     done();
                 }
@@ -187,9 +195,10 @@ suite('Campfire API:', function(){
 
     suite('Room Locking:', function(){
         test('Lock a room', function(done){
+            support.api.setNextReturn(200);
             campfire.room.lock(support.testInfo.roomIdInt, true,
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}/lock.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}/lock.json", support.testInfo.roomIdInt), "URI mismatch");
                     assert.equal(200, response.statusCode);
                     done();
                 }
@@ -208,13 +217,120 @@ suite('Campfire API:', function(){
         });
 
         test('Unlock a room', function(done){
+            support.api.setNextReturn(200);
             campfire.room.lock(support.testInfo.roomIdInt, false,
                 function(responseBody, response, error) {
-                    assert.equal(support.last.uri, support.formatString("/room/{0}/unlock.json", support.testInfo.roomIdInt), "URI mismatch");
+                    var expected = support.formatString("/room/{0}/unlock.json", support.testInfo.roomIdInt);
+                    assert.equal(support.lastRequest.uri, expected, "URI mismatch: " + support.lastRequest.uri + ", " + expected);
                     assert.equal(200, response.statusCode);
                     done();
                 }
             );
+        });
+
+    });
+
+    suite('Posting Messages:', function(){
+        test('Basic text post', function(done){
+            campfire.room.postTextMessage(support.testInfo.roomIdInt, "Hi there folks!",
+                function(responseBody, response, error) {
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}/speak.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(201, response.statusCode);
+                    var expected = {message: {
+                        body: "Hi there folks!"
+                        ,type: "TextMessage"
+                    }};
+                    assert._isEqual(expected, support.lastRequest.body, "Didn't get expected body");
+                    done();
+                }
+            );
+        });
+
+        test('Basic paste message', function(done){
+            campfire.room.pasteMessage(support.testInfo.roomIdInt, "Hi there folks!",
+                function(responseBody, response, error) {
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}/speak.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(201, response.statusCode);
+                    var expected = {message: {
+                        body: "Hi there folks!"
+                        ,type: "PasteMessage"
+                    }};
+                    assert._isEqual(expected, support.lastRequest.body, "Didn't get expected body");
+                    done();
+                }
+            );
+        });
+
+        test('Basic twitterURL post', function(done){
+            campfire.room.tweetMessage(support.testInfo.roomIdInt, "https://twitter.com/Kred/status/239142587255115776",
+                function(responseBody, response, error) {
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}/speak.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(201, response.statusCode);
+                    var expected = {message: {
+                        body: "https://twitter.com/Kred/status/239142587255115776"
+                        ,type: "TweetMessage"
+                    }};
+                    assert._isEqual(expected, support.lastRequest.body, "Didn't get expected body");
+                    done();
+                }
+            );
+        });
+
+        test('Basic play sound', function(done){
+            campfire.room.playSound(support.testInfo.roomIdInt, "inconceivable",
+                function(responseBody, response, error) {
+                    assert.equal(support.lastRequest.uri, support.formatString("/room/{0}/speak.json", support.testInfo.roomIdInt), "URI mismatch");
+                    assert.equal(201, response.statusCode);
+                    var expected = {message: {
+                        body: "inconceivable"
+                        ,type: "SoundMessage"
+                    }};
+                    assert._isEqual(expected, support.lastRequest.body, "Didn't get expected body");
+                    done();
+                }
+            );
+        });
+
+    });
+
+
+    suite('Transcripts:', function(){
+
+        test('Today', function(done){
+            campfire.room.transcript(support.testInfo.roomIdInt,
+                function(responseBody, response, error) {
+                    var expected = support.formatString("/room/{0}/transcript.json", support.testInfo.roomIdInt);
+                    assert.equal(support.lastRequest.uri, expected, "URI mismatch: " + support.lastRequest.uri + ", " + expected);
+                    assert.equal(200, response.statusCode);
+                    done();
+                }
+            );
+        });
+
+        test('Specific date', function(done){
+            var targetDate = new Date(2012, 6, 1);  // July 1, 2012
+            campfire.room.transcriptOnDate(support.testInfo.roomIdInt, targetDate,
+                function(responseBody, response, error) {
+                    var expected = support.formatString("/room/{0}/transcript/{1}/{2}/{3}.json",
+                        support.testInfo.roomIdInt, 2012, 7, 1);
+                    assert.equal(support.lastRequest.uri, expected, "URI mismatch: " + support.lastRequest.uri + ", " + expected);
+                    assert.equal(200, response.statusCode);
+//                    console.log(support.lastRequest.uri);
+//                    console.log(responseBody);
+                    done();
+                }
+            );
+        });
+
+        test('Bogus date', function(done){
+            support.api.expectsException( function() {
+                campfire.room.transcriptOnDate(support.testInfo.roomIdInt, "2012",
+                    function(responseBody, response, error) {
+                        assert(false, "should not be here");
+                    }
+                );
+            }, "TypeError");
+            done();
         });
 
     });

@@ -3,25 +3,22 @@
 var assert = require('assert');
 var support = require("./lib/support");
 
-suite('Campfire API:', function(){
+suite('Account Info:', function(){
     var campfire;
 
     setup(function(){
         campfire = support.createCampfireAPI();
     });
 
-
-    suite('Account Info:', function(){
-        test('Get Account info', function(done){
-            campfire.account(
-                function(responseBody, response, error) {
-                    assert.equal(support.last.uri, "/account.json");
-                    assert.equal(200, response.statusCode);
-                    console.log(responseBody);
-                    done();
-                }
-            );
-        });
+    test('Get Account info', function(done){
+        campfire.account(
+            function(responseBody, response, error) {
+                var expectedUri = "/account.json"
+                assert.equal(support.lastRequest.uri, expectedUri, "URI mismatch: " + support.lastRequest.uri + ", " + expectedUri);
+                assert.equal(200, response.statusCode);
+                done();
+            }
+        );
     });
 
 });
